@@ -3,7 +3,7 @@
 require realpath(dirname(__FILE__)).'\class\crud.php';
 
 
-$data = array('nome'=> 'Leandro Santana65465456451651651','cpf'=> '308.989.228-888');
+$data = array('nome'=>'teste');
 
-$id = crud::save('cliente',$data);
+$id = crud::delete('cliente',$data);
 echo $id;

@@ -4,14 +4,16 @@ require realpath(dirname(__FILE__)).'\database.php';
 class crud extends database
 {
 	public function save($table=false,$data=false)
-	{
-	  $conn = new database();	
-	  
-	  try{			
-		  foreach($data as $keys=> $values)
-		  { 
-			$new_data[':'.$keys] = $values;
-			$updatefields[] = $keys .' = :'.$keys;
+	{	  
+	  try{
+		  $conn = new database();	
+		  if($data)
+		  {	
+			foreach($data as $keys=> $values)
+			{ 
+			  $new_data[':'.$keys] = $values;
+			  $updatefields[] = $keys .' = :'.$keys;
+			}
 		  }
 		  
 		  $fields             = implode(', ',array_keys($data));
@@ -22,11 +24,14 @@ class crud extends database
 	  
 		  $conn->beginTransaction();
 		  $stmt = $conn->prepare($sql);
-		  
-		  foreach($data as $keys=> $values)
-		  { 
-			  $stmt->bindValue(':'.$keys, $values);
-		  }	
+		 
+		  if($data)
+		  {	
+			foreach($data as $keys=> $values)
+			{ 
+				$stmt->bindValue(':'.$keys, $values);
+			}	
+		  }
 		  
 		  $stmt->execute();
 		  $id = $conn->lastInsertId();
@@ -34,7 +39,7 @@ class crud extends database
 		  
 		  if($id)
 		  {
-			return $id;	
+			return "Insert ".$id;	
 		  }	
 				  
 	  }catch(PDOException $e){
@@ -44,15 +49,40 @@ class crud extends database
 	  
 	}
 	
-	public function delete($table=false)
-	{
-		try {		
-		$sql = "DELETE FROM `".$table."` WHERE `category` IN('education', 'programming')";
-		$count = $conn->exec($sql);
-		
-		$conn = null;
+	public function delete($table=false,$data=false)
+	{	
+		try {
+			$conn = new database();
+			if($data)
+			{
+			  foreach($data as $keys=> $values)
+			  { 
+				$conditions[] = $keys .' = :'.$keys;
+			  }	
+			  $conditions     = implode(' && ',$conditions);
+			}
+			$sql = ("DELETE FROM `".$table."` WHERE ".$conditions);
+	
+			$conn->beginTransaction();
+		  	$stmt = $conn->prepare($sql);
+			
+			if($data)
+			{				
+			  foreach($data as $keys=> $values)
+			  { 
+				$stmt->bindValue(':'.$keys, $values);
+			  }	
+			}
+			$stmt->execute();	
+			$rows = $stmt->rowCount();		
+			$conn->commit();
+			
+			
+			return "Deleted ".$rows." rows";
+			
 		}
 		catch(PDOException $e) {
+			$conn->rollback();
 			echo 'Error: '.$e->getMessage();
 		}
 
