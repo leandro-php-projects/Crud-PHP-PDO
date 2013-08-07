@@ -42,5 +42,19 @@ class crud extends database
 		  echo 'Error: '.$e->getMessage();
 	  }
 	  
-	}		
+	}
+	
+	public function delete($table=false)
+	{
+		try {		
+		$sql = "DELETE FROM `".$table."` WHERE `category` IN('education', 'programming')";
+		$count = $conn->exec($sql);
+		
+		$conn = null;
+		}
+		catch(PDOException $e) {
+			echo 'Error: '.$e->getMessage();
+		}
+
+	}
 }
